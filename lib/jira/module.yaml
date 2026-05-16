@@ -1,3 +1,14 @@
 product:
   type: lib
   platforms: [jvm, macosArm64, macosX64, linuxX64, linuxArm64, mingwX64]
+
+settings:
+  kotlin:
+    serialization: enabled
+
+dependencies:
+  - io.ktor:ktor-client-core:3.0.1
+  - io.ktor:ktor-client-content-negotiation:3.0.1
+  - io.ktor:ktor-serialization-kotlinx-json:3.0.1
+  - org.jetbrains.kotlinx:kotlinx-datetime:0.6.1
+  - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2
