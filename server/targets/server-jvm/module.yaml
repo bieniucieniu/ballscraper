@@ -1,0 +1,9 @@
+product: jvm/app
+
+settings:
+  jvm:
+    mainClass: org.jetbrains.amper.ktor.ApplicationKt
+
+dependencies:
+  - ../..
+  - ch.qos.logback:logback-classic:1.5.18

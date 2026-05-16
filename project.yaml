@@ -1,0 +1,11 @@
+modules:
+  - server
+  - server/targets/server-native
+  - server/targets/server-jvm
+  - cli
+  - cli/targets/cli-macos
+  - cli/targets/cli-linux
+  - cli/targets/cli-windows
+  - cli/targets/cli-jvm
+  - lib/gitlab
+  - lib/jira

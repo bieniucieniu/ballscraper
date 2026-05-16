@@ -1,0 +1,8 @@
+product: windows/app
+
+settings:
+  native:
+    entryPoint: org.jetbrains.amper.cli.main
+
+dependencies:
+  - ../..

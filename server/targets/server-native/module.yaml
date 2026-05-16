@@ -1,0 +1,8 @@
+product: linux/app
+
+settings:
+  native:
+    entryPoint: org.jetbrains.amper.ktor.main
+
+dependencies:
+  - ../..

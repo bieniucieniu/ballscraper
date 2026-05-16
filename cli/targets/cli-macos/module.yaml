@@ -1,0 +1,11 @@
+product:
+  type: macos/app
+  platforms:
+    - macosArm64
+
+settings:
+  native:
+    entryPoint: org.jetbrains.amper.cli.main
+
+dependencies:
+  - ../..
