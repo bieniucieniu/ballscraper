@@ -2,7 +2,7 @@ product: windows/app
 
 settings:
   native:
-    entryPoint: org.jetbrains.amper.cli.main
+    entryPoint: com.bieniucieniu.ballscraper.cli.main
 
 dependencies:
   - ../..

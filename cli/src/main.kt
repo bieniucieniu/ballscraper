@@ -1,4 +1,4 @@
-package org.jetbrains.amper.cli
+package com.bieniucieniu.ballscraper.cli
 
 import androidx.compose.runtime.*
 import com.github.ajalt.clikt.core.CliktCommand

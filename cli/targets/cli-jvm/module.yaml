@@ -2,7 +2,7 @@ product: jvm/app
 
 settings:
   jvm:
-    mainClass: org.jetbrains.amper.cli.MainKt
+    mainClass: com.bieniucieniu.ballscraper.cli.MainKt
 
 dependencies:
   - ../..

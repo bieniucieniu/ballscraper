@@ -1,4 +1,4 @@
-package org.jetbrains.amper.ktor
+package com.bieniucieniu.ballscraper.server
 
 import io.ktor.server.application.*
 import io.ktor.server.response.*

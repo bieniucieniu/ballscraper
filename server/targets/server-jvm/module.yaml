@@ -2,7 +2,7 @@ product: jvm/app
 
 settings:
   jvm:
-    mainClass: org.jetbrains.amper.ktor.ApplicationKt
+    mainClass: com.bieniucieniu.ballscraper.server.ApplicationKt
 
 dependencies:
   - ../..
