@@ -1,7 +1,7 @@
 package com.bieniucieniu.ballscraper.gitlab
 
 import kotlinx.serialization.Serializable
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 @Serializable
 data class GitLabGroup(

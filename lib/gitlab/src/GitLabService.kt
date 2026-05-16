@@ -4,7 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 class GitLabService(
     private val client: HttpClient,

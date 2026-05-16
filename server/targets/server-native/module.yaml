@@ -1,8 +1,0 @@
-product: linux/app
-
-settings:
-  native:
-    entryPoint: com.bieniucieniu.ballscraper.server.main
-
-dependencies:
-  - ../..
