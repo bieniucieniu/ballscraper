@@ -9,7 +9,8 @@ settings:
       format: json
 
 dependencies:
-  - io.ktor:ktor-client-core:3.4.1
-  - io.ktor:ktor-client-content-negotiation:3.4.1
+  - io.ktor:ktor-client-core:3.4.3
+  - io.ktor:ktor-client-content-negotiation:3.4.3
+  - io.ktor:ktor-serialization-kotlinx-json:3.4.3
   - org.jetbrains.kotlinx:kotlinx-datetime:0.8.0
   - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0

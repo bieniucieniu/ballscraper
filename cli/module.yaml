@@ -1,0 +1,17 @@
+product:
+  type: lib
+  platforms: [jvm, macosArm64, macosX64, linuxX64, linuxArm64, mingwX64]
+
+settings:
+  compose: enabled
+
+dependencies:
+  - com.github.ajalt.clikt:clikt:5.1.0
+  - com.jakewharton.mosaic:mosaic-runtime:0.18.0
+  - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0
+  - org.jetbrains.kotlinx:kotlinx-datetime:0.8.0
+  - io.ktor:ktor-client-core:3.4.3
+  - io.ktor:ktor-client-cio:3.4.3
+  - io.ktor:ktor-client-content-negotiation:3.4.3
+  - ./../lib/gitlab
+  - ./../lib/jira

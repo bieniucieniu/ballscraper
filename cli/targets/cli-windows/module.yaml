@@ -1,0 +1,8 @@
+product: windows/app
+
+settings:
+  native:
+    entryPoint: com.bieniucieniu.ballscraper.cli.main
+
+dependencies:
+  - ../..

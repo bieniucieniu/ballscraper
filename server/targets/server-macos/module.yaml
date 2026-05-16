@@ -1,0 +1,9 @@
+product: macos/app
+
+settings:
+  native:
+    entryPoint: com.bieniucieniu.ballscraper.server.main
+
+dependencies:
+  - ../..
+  - app.cash.sqldelight:native-driver:2.3.2
