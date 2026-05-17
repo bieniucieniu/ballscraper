@@ -1,6 +1,10 @@
 modules:
+  - lib/gitlab
+  - lib/jira
   - server
   - server/targets/server-linux
   - server/targets/server-macos
-  - lib/gitlab
-  - lib/jira
+  - cli
+  - cli/targets/cli-linux
+  - cli/targets/cli-macos
+  - cli/targets/cli-windows
