@@ -1,4 +1,7 @@
-product: macos/app
+product:
+  type: macos/app
+  platforms:
+    - macosArm64
 
 settings:
   native:
@@ -7,4 +10,5 @@ settings:
     serialization: enabled
 
 dependencies:
+  - net.mamoe.yamlkt:yamlkt:0.13.0
   - ../..

@@ -2,11 +2,13 @@ package com.bieniucieniu.ballscraper.cli
 
 import com.bieniucieniu.ballscraper.cli.shared.AppConfig
 import com.bieniucieniu.ballscraper.cli.shared.ConfigManager
-import kotlinx.cinterop.*
-import platform.posix.*
-import net.mamoe.yamlkt.Yaml
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.usePinned
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
+import net.mamoe.yamlkt.Yaml
+import platform.posix.*
 
 @OptIn(ExperimentalForeignApi::class)
 object PlatformConfigManager : ConfigManager {
@@ -26,7 +28,7 @@ object PlatformConfigManager : ConfigManager {
             val size = ftell(file).toInt()
             fseek(file, 0, SEEK_SET)
             if (size <= 0) return AppConfig().also { cachedConfig = it }
-            
+
             val buffer = ByteArray(size)
             buffer.usePinned { pinned ->
                 fread(pinned.addressOf(0), 1.toULong(), size.toULong(), file)
@@ -45,7 +47,7 @@ object PlatformConfigManager : ConfigManager {
         cachedConfig = config
         val dir = configPath.substringBeforeLast("/")
         mkdirs(dir)
-        
+
         val file = fopen(configPath, "w") ?: return
         try {
             val content = yaml.encodeToString(config)
@@ -66,7 +68,7 @@ object PlatformConfigManager : ConfigManager {
         for (segment in segments) {
             if (segment.isEmpty()) continue
             current = if (current == "/" || current.isEmpty()) current + segment else "$current/$segment"
-            mkdir(current, 511.toUInt()) // 0777
+            mkdir(current, 511.toUShort()) // 0777
         }
     }
 }
