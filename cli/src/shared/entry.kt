@@ -1,11 +1,7 @@
-package com.bieniucieniu.ballscraper.cli
+package com.bieniucieniu.ballscraper.cli.shared
 
 import androidx.compose.runtime.*
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.PrintHelpMessage
-import com.github.ajalt.clikt.core.main
-import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.core.terminal
+import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.option
 import com.jakewharton.mosaic.runMosaic
 import com.jakewharton.mosaic.ui.Color
@@ -18,12 +14,14 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
-class GitlabCommand(private val config: AppConfig) : CliktCommand() {
+class GitlabCommand(private val configManager: ConfigManager) : CliktCommand() {
     val token by option("-t", "--token", help = "GitLab Private Token")
     val host by option("--host", help = "GitLab Host")
     val group by option("-g", "--group", help = "Group path")
 
     override fun run() = runBlocking {
+        val config = configManager.load()
+
         val finalToken = token ?: config.gitlab.token
         val finalHost = host ?: config.gitlab.host
         val finalGroup = group ?: config.gitlab.group
@@ -36,7 +34,7 @@ class GitlabCommand(private val config: AppConfig) : CliktCommand() {
             val result =
                 runGitlabTui(finalHost ?: "https://gitlab.com", finalToken, finalGroup, config.gitlab.recentGroups)
             if (result != null) {
-                ConfigManager.save(
+                configManager.save(
                     config.copy(
                         gitlab = config.gitlab.copy(
                             token = result.token,
@@ -54,12 +52,13 @@ class GitlabCommand(private val config: AppConfig) : CliktCommand() {
     }
 }
 
-class JiraCommand(private val config: AppConfig) : CliktCommand() {
+class JiraCommand(private val configManager: ConfigManager) : CliktCommand() {
     val token by option("-t", "--token", help = "Jira API Token")
     val host by option("--host", help = "Jira Host")
     val project by option("-p", "--project", help = "Project key")
 
     override fun run() = runBlocking {
+        val config = configManager.load()
         val finalToken = token ?: config.jira.token
         val finalHost = host ?: config.jira.host
         val finalProject = project ?: config.jira.group
@@ -153,9 +152,7 @@ class BallScraper : CliktCommand() {
     }
 }
 
-fun main(args: Array<String>) {
-    val config = ConfigManager.load()
-    BallScraper()
-        .subcommands(GitlabCommand(config), JiraCommand(config)).main(args)
-
+fun runBallScraper(config: ConfigManager, args: Array<String>) {
+    BallScraper().subcommands(GitlabCommand(config), JiraCommand(config)).main(args)
 }
+

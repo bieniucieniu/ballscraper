@@ -8,3 +8,4 @@ modules:
   - cli/targets/cli-linux
   - cli/targets/cli-macos
   - cli/targets/cli-windows
+  - cli/targets/cli-jvm

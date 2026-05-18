@@ -3,6 +3,8 @@ product: macos/app
 settings:
   native:
     entryPoint: com.bieniucieniu.ballscraper.cli.main
+  kotlin:
+    serialization: enabled
 
 dependencies:
   - ../..

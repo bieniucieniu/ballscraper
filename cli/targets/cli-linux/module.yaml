@@ -1,8 +1,14 @@
-product: linux/app
+product:
+  type: linux/app
+  platforms:
+    - linuxX64
 
 settings:
   native:
     entryPoint: com.bieniucieniu.ballscraper.cli.main
+  kotlin:
+    serialization: enabled
 
 dependencies:
+  - net.mamoe.yamlkt:yamlkt:0.13.0
   - ../..

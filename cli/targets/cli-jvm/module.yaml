@@ -3,6 +3,9 @@ product: jvm/app
 settings:
   jvm:
     mainClass: com.bieniucieniu.ballscraper.cli.MainKt
+  kotlin:
+    serialization: enabled
 
 dependencies:
+  - net.mamoe.yamlkt:yamlkt:0.13.0
   - ../..

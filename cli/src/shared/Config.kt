@@ -1,4 +1,4 @@
-package com.bieniucieniu.ballscraper.cli
+package com.bieniucieniu.ballscraper.cli.shared
 
 import kotlinx.serialization.Serializable
 
