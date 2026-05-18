@@ -1,6 +1,6 @@
 product:
   type: lib
-  platforms: [linuxX64, linuxArm64, macosArm64, macosX64]
+  platforms: [ linuxX64, linuxArm64, macosArm64, macosX64 ]
 
 settings:
   ktor: enabled
@@ -11,6 +11,7 @@ dependencies:
   - app.cash.sqldelight:runtime:2.3.2
   - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0
   - org.jetbrains.kotlinx:kotlinx-datetime:0.8.0
+  -./
 
 test-dependencies:
   - $ktor.server.testHost

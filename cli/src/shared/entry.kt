@@ -11,15 +11,15 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 class GitlabCommand(private val configManager: ConfigManager) : CliktCommand() {
     val token by option("-t", "--token", help = "GitLab Private Token")
     val host by option("--host", help = "GitLab Host")
     val group by option("-g", "--group", help = "Group path")
+    override fun run() {}
 
-    override fun run() = runBlocking {
+    suspend fun main() {
         val config = configManager.load()
 
         val finalToken = token ?: config.gitlab.token
@@ -29,7 +29,7 @@ class GitlabCommand(private val configManager: ConfigManager) : CliktCommand() {
         if (finalToken == null || finalHost == null || finalGroup == null) {
             if (!currentContext.terminal.terminalInfo.interactive) {
                 echo("Error: Missing info and not interactive.", err = true)
-                return@runBlocking
+                return
             }
             val result =
                 runGitlabTui(finalHost ?: "https://gitlab.com", finalToken, finalGroup, config.gitlab.recentGroups)
@@ -57,7 +57,8 @@ class JiraCommand(private val configManager: ConfigManager) : CliktCommand() {
     val host by option("--host", help = "Jira Host")
     val project by option("-p", "--project", help = "Project key")
 
-    override fun run() = runBlocking {
+    override fun run() {}
+    suspend fun main() {
         val config = configManager.load()
         val finalToken = token ?: config.jira.token
         val finalHost = host ?: config.jira.host
@@ -143,8 +144,9 @@ fun TuiField(label: String, value: String, focused: Boolean) {
 
 class BallScraper : CliktCommand() {
     override val invokeWithoutSubcommand: Boolean get() = true
+    var subcommand: BaseCliktCommand<*>? = null
     override fun run() {
-        val subcommand = currentContext.invokedSubcommand
+        subcommand = currentContext.invokedSubcommand
         if (subcommand == null) {
             echo("BallScraper CLI")
             throw PrintHelpMessage(currentContext)
@@ -152,7 +154,16 @@ class BallScraper : CliktCommand() {
     }
 }
 
-fun runBallScraper(config: ConfigManager, args: Array<String>) {
-    BallScraper().subcommands(GitlabCommand(config), JiraCommand(config)).main(args)
+suspend fun runBallScraper(config: ConfigManager, args: Array<String>) {
+    val gitlab = GitlabCommand(config)
+    val jira = JiraCommand(config)
+    val app = BallScraper().subcommands(gitlab, jira).apply {
+        parse(args)
+        run()
+    }
+    when (app.subcommand) {
+        is GitlabCommand -> gitlab.main()
+        is JiraCommand -> jira.main()
+    }
 }
 
