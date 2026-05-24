@@ -10,7 +10,6 @@ pub const HttpClient = struct {
 
     pub fn init(allocator: Allocator, io: Io) HttpClient {
         return .{
-            // The new std.http.Client expects the allocator and the io interface
             .client = .{
                 .allocator = allocator,
                 .io = io,
@@ -28,51 +27,48 @@ pub const HttpClient = struct {
         req: *http.Client.Request,
         res: http.Client.Response,
         redirect_buffer: []u8,
-        allocator: Allocator,
-        arena: ?std.heap.ArenaAllocator = null,
+        body_buffer: ?[]u8 = null,
+        arena: std.heap.ArenaAllocator,
 
         pub fn deinit(self: *HttpResponse) void {
-            if (self.arena) |*a| {
-                a.deinit();
-            }
-            // Calling req.deinit() will discard the rest of the body
-            // so the connection can be returned to the connection pool
+            // req.deinit() ensures the connection is properly returned to the pool
             self.req.deinit();
-            self.allocator.destroy(self.req);
-            self.allocator.free(self.redirect_buffer);
+            self.arena.deinit();
         }
 
-        pub fn body(self: *HttpResponse, comptime T: type) !T {
-            if (self.arena != null) return error.BodyAlreadyRead;
+        /// Reads the entire response body as a raw byte slice.
+        /// The memory is owned by the response's arena and is valid until deinit().
+        pub fn text(self: *HttpResponse) ![]u8 {
+            if (self.body_buffer) |b| return b;
 
-            self.arena = std.heap.ArenaAllocator.init(self.allocator);
-            errdefer {
-                self.arena.?.deinit();
-                self.arena = null;
-            }
-            const arena_allocator = self.arena.?.allocator();
-
+            const allocator = self.arena.allocator();
             const decompress_buffer: []u8 = switch (self.res.head.content_encoding) {
                 .identity => &[_]u8{},
-                .zstd => try arena_allocator.alloc(u8, std.compress.zstd.default_window_len),
-                .deflate, .gzip => try arena_allocator.alloc(u8, std.compress.flate.max_window_len),
+                .zstd => try allocator.alloc(u8, std.compress.zstd.default_window_len),
+                .deflate, .gzip => try allocator.alloc(u8, std.compress.flate.max_window_len),
                 .compress => return error.UnsupportedCompressionMethod,
             };
+            defer allocator.free(decompress_buffer);
 
-            // The transfer buffer must be preserved for the duration of the reading
             var transfer_buffer: [64]u8 = undefined;
             var decompress: http.Decompress = undefined;
             const reader = self.res.readerDecompressing(&transfer_buffer, &decompress, decompress_buffer);
 
-            const raw_body = reader.readAllAlloc(arena_allocator, 10 * 1024 * 1024) catch |err| switch (err) {
-                error.ReadFailed => return self.res.bodyErr().?,
-                else => |e| return e,
-            };
+            const body_buffer = try reader.readAllAlloc(allocator, 10 * 1024 * 1024); // 10MB limit
+            self.body_buffer = body_buffer;
 
-            const parsed = try std.json.parseFromSlice(T, arena_allocator, raw_body, .{
+            return body_buffer;
+        }
+
+        /// Retrieves and parses the body into type T.
+        /// Returns std.json.Parsed(T) which contains the value and its own arena.
+        /// Caller must call .deinit() on the returned Parsed(T) object.
+        pub fn body(self: *HttpResponse, comptime T: type) !std.json.Parsed(T) {
+            const raw_body = try self.text();
+            // Use the base allocator for the parsed result so it can be managed independently
+            return std.json.parseFromSlice(T, self.arena.child_allocator, raw_body, .{
                 .ignore_unknown_fields = true,
             });
-            return parsed.value;
         }
     };
 
@@ -87,22 +83,22 @@ pub const HttpClient = struct {
     pub fn get(self: *HttpClient, url: []const u8, opt: HttpClientGetOptions) !HttpResponse {
         const uri = try std.Uri.parse(url);
 
-        // We allocate the Request on the heap so its memory address is stable
-        // because receiveHead() returns a Response containing a pointer to it.
-        const req = try self.allocator.create(http.Client.Request);
-        errdefer self.allocator.destroy(req);
+        var arena = std.heap.ArenaAllocator.init(self.allocator);
+        errdefer arena.deinit();
+        const allocator = arena.allocator();
+
+        // Allocate Request on arena so it's cleaned up automatically
+        const req = try allocator.create(http.Client.Request);
 
         req.* = try self.client.request(.GET, uri, .{
-            .headers = .{ .content_type = .{ .override = "application/json" } },
+            .headers = .{ .connection = .default },
             .extra_headers = opt.headers,
         });
         errdefer req.deinit();
 
         try req.sendBodiless();
 
-        const redirect_buf = try self.allocator.alloc(u8, 8192);
-        errdefer self.allocator.free(redirect_buf);
-
+        const redirect_buf = try allocator.alloc(u8, 8192);
         const res = try req.receiveHead(redirect_buf);
         if (res.head.status != .ok) return error.HttpError;
 
@@ -110,15 +106,18 @@ pub const HttpClient = struct {
             .req = req,
             .res = res,
             .redirect_buffer = redirect_buf,
-            .allocator = self.allocator,
+            .arena = arena,
         };
     }
 
     pub fn post(self: *HttpClient, url: []const u8, body_obj: anytype, opt: HttpClientPostOptions) !HttpResponse {
         const uri = try std.Uri.parse(url);
 
-        const req = try self.allocator.create(http.Client.Request);
-        errdefer self.allocator.destroy(req);
+        var arena = std.heap.ArenaAllocator.init(self.allocator);
+        errdefer arena.deinit();
+        const allocator = arena.allocator();
+
+        const req = try allocator.create(http.Client.Request);
 
         req.* = try self.client.request(.POST, uri, .{
             .headers = .{ .content_type = .{ .override = "application/json" } },
@@ -126,14 +125,10 @@ pub const HttpClient = struct {
         });
         errdefer req.deinit();
 
-        const body_json = try std.json.stringifyAlloc(self.allocator, body_obj, .{});
-        defer self.allocator.free(body_json);
-
+        const body_json = try std.json.stringifyAlloc(allocator, body_obj, .{});
         try req.sendBodyComplete(body_json);
 
-        const redirect_buf = try self.allocator.alloc(u8, 8192);
-        errdefer self.allocator.free(redirect_buf);
-
+        const redirect_buf = try allocator.alloc(u8, 8192);
         const res = try req.receiveHead(redirect_buf);
         if (res.head.status != .ok) return error.HttpError;
 
@@ -141,7 +136,7 @@ pub const HttpClient = struct {
             .req = req,
             .res = res,
             .redirect_buffer = redirect_buf,
-            .allocator = self.allocator,
+            .arena = arena,
         };
     }
 };

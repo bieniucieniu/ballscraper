@@ -18,12 +18,19 @@ pub fn main(init: std.process.Init) !void {
     }
 
     // In order to do I/O operations need an `Io` instance.
-    var ev: Io.Threaded = .init(init.gpa, .{});
+    var ev: Io.Evented = undefined;
+    try ev.init(init.gpa, .{});
     defer ev.deinit();
     const io = ev.io();
 
     var client: http.HttpClient = .init(init.gpa, io);
     defer client.deinit();
+
+    var res = try client.get("https://google.com", .{});
+    defer res.deinit();
+
+    std.debug.print("status: {s}\n", .{try res.text()});
+
     // Stdout is for the actual output of your application, for example if you
     // are implementing gzip, then only the compressed bytes should be sent to
     // stdout, not any debugging messages.

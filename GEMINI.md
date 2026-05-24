@@ -28,6 +28,34 @@ don't use maven like structure, use flat file structure; amper allows it
 
 # for zig
 use zig build system
+## code style 
+use `.{}` syntax for all zig code
+```zig
+const Type = struct {}
+const TypeWithInit = struct {
+  fn init() TypeWithInit {
+    return .{};
+  }
+}
+```
+always prefer
+```zig
+const value: Type = .{};
+const value: TypeWithInit = .init();
+fn foo() Type {
+  return .{};
+}
+```
+over
+```zig
+const value = Type{};
+const value = TypeWithInit.init();
+fn foo() Type {
+  return Type{};
+}
+```
+## build 
+use amper to build and run applications under nix and devenv.
 
 ## project structure
 keep it simple, use flat file structure 
